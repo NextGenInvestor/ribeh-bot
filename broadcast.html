@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block title %}رسالة جماعية - لوحة إدارة Ribeh{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-bullhorn me-2"></i>إرسال رسالة جماعية</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-envelope me-2"></i>
+                    إنشاء رسالة جماعية
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="message" class="form-label">نص الرسالة</label>
+                        <textarea class="form-control" id="message" name="message" rows="8" 
+                                  placeholder="اكتب رسالتك هنا..." required></textarea>
+                        <div class="form-text">سيتم إرسال هذه الرسالة لجميع مستخدمي البوت</div>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>تنبيه:</strong> ستصل هذه الرسالة لجميع المستخدمين المسجلين في البوت. تأكد من محتوى الرسالة قبل الإرسال.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary me-md-2" onclick="document.getElementById('message').value=''">
+                            <i class="fas fa-eraser me-2"></i>مسح
+                        </button>
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('هل أنت متأكد من إرسال هذه الرسالة لجميع المستخدمين؟')">
+                            <i class="fas fa-paper-plane me-2"></i>إرسال الرسالة
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ملاحظات مهمة
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>يمكنك استخدام الرموز التعبيرية في الرسالة</li>
+                    <li>تجنب إرسال رسائل مكررة في فترات قصيرة</li>
+                    <li>تأكد من أن محتوى الرسالة مناسب ومفيد للمستخدمين</li>
+                    <li>الرسائل الجماعية تساعد في التواصل مع المستخدمين بشكل فعال</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

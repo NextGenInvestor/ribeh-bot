@@ -1,0 +1,79 @@
+import logging import sqlite3 import os from dotenv import load_dotenv from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InputFile from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, ContextTypes
+
+🔐 تحميل التوكن من ملف .env
+
+load_dotenv() TOKEN = os.getenv("BOT_TOKEN") ADMIN_ID = int(os.getenv("ADMIN_ID"))  # معرف المدير
+
+🛠️ إعدادات السجل
+
+logging.basicConfig(level=logging.INFO) logger = logging.getLogger(name)
+
+📦 إعداد قاعدة البيانات
+
+def init_db(): with sqlite3.connect("ribeh.db") as conn: c = conn.cursor() c.execute('''CREATE TABLE IF NOT EXISTS users ( user_id INTEGER PRIMARY KEY, username TEXT, referrer INTEGER, investment INTEGER DEFAULT 0 )''') c.execute('''CREATE TABLE IF NOT EXISTS payments ( id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, method TEXT, proof BLOB )''') conn.commit()
+
+main_menu = [ ["📦 الباقات", "💼 ملفي الشخصي"], ["💳 إيداع", "💸 سحب الأموال"], ["🧾 إثبات الدفع", "🏠 الصفحة الرئيسية"] ]
+
+🚀 بدء البوت
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): user = update.effective_user reply_markup = ReplyKeyboardMarkup(main_menu, resize_keyboard=True) await update.message.reply_text( f"مرحبًا بك {user.first_name} في بوت Ribeh الاستثماري 💼\nاختر من القائمة:", reply_markup=reply_markup ) with sqlite3.connect("ribeh.db") as conn: c = conn.cursor() c.execute("INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)", (user.id, user.username)) conn.commit()
+
+async def show_packages(update: Update, context: ContextTypes.DEFAULT_TYPE): packages_text = """ 💼 الباقات الاستثمارية المتاحة:
+
+1️⃣ باقة المبتدئين - 2000 دج • عائد يومي: 50 دج • مدة الاستثمار: 45 يوم • إجمالي العائد: 2250 دج
+
+2️⃣ باقة المتقدمين - 10000 دج
+• عائد يومي: 300 دج • مدة الاستثمار: 40 يوم • إجمالي العائد: 12000 دج
+
+3️⃣ باقة المحترفين - 60000 دج • عائد يومي: 2000 دج • مدة الاستثمار: 35 يوم • إجمالي العائد: 70000 دج
+
+💡 لاختيار باقة، اضغط على 💳 إيداع """ await update.message.reply_text(packages_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE): user_id = update.effective_user.id user = update.effective_user with sqlite3.connect("ribeh.db") as conn: c = conn.cursor() c.execute("SELECT investment FROM users WHERE user_id = ?", (user_id,)) result = c.fetchone() invested = result[0] if result else 0 profile_text = f""" 👤 الملف الشخصي: 🆔 معرف المستخدم: {user_id} 📱 اسم المستخدم: @{user.username or 'غير متوفر'} 👋 الاسم: {user.first_name} 💰 إجمالي الاستثمار: {invested} دج 📊 حالة الحساب: نشط """ await update.message.reply_text(profile_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+async def deposit(update: Update, context: ContextTypes.DEFAULT_TYPE): deposit_text = """ 💳 طرق الدفع: 1️⃣ 📱 بريدي موب 2️⃣ 💳 CCP 3️⃣ 🌍 Wise 4️⃣ 💰 USDT
+
+📝 حول المبلغ ثم أرسل 🧾 إثبات الدفع """ await update.message.reply_text(deposit_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+async def withdrawal(update: Update, context: ContextTypes.DEFAULT_TYPE): text = """ 💸 السحب: • الحد الأدنى: 1000 دج • رسوم: 2% • وقت المعالجة: 24-48 ساعة
+
+📞 راسل الدعم: @ribeh_support """ await update.message.reply_text(text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+async def home(update: Update, context: ContextTypes.DEFAULT_TYPE): await update.message.reply_text("🏠 أهلاً بك في الصفحة الرئيسية", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+async def proof(update: Update, context: ContextTypes.DEFAULT_TYPE): await update.message.reply_text(""" 📷 أرسل صورة إيصال الدفع الآن • يجب أن تتضمن التاريخ، المبلغ، واسم المرسل """) return 1
+
+async def save_proof(update: Update, context: ContextTypes.DEFAULT_TYPE): user = update.effective_user if update.message.photo: photo_file = await update.message.photo[-1].get_file() photo_bytes = await photo_file.download_as_bytearray() with sqlite3.connect("ribeh.db") as conn: c = conn.cursor() c.execute("INSERT INTO payments (user_id, method, proof) VALUES (?, ?, ?)", (user.id, "manual", photo_bytes)) conn.commit() await context.bot.send_photo(chat_id=ADMIN_ID, photo=photo_bytes, caption=f"📩 إثبات دفع جديد من @{user.username or 'مجهول'} (ID: {user.id})") await update.message.reply_text("✅ تم استلام الإثبات، سيتم مراجعته قريبًا.", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)) else: await update.message.reply_text("❌ الرجاء إرسال صورة واضحة فقط.", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)) return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE): await update.message.reply_text("تم الإلغاء 🛑", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)) return ConversationHandler.END
+
+✅ لوحة المدير
+
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE): if update.effective_user.id != ADMIN_ID: await update.message.reply_text("❌ ليس لديك صلاحية الوصول.") return with sqlite3.connect("ribeh.db") as conn: c = conn.cursor() c.execute("SELECT COUNT() FROM users") total_users = c.fetchone()[0] c.execute("SELECT COUNT() FROM payments") total_payments = c.fetchone()[0] await update.message.reply_text(f"👑 لوحة التحكم:\n👥 عدد المستخدمين: {total_users}\n🧾 عدد الإثباتات: {total_payments}")
+
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE): await update.message.reply_text("❓ لم أفهم الطلب. الرجاء استخدام الأزرار.", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
+def main(): init_db() app = Application.builder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("admin", admin_panel))
+app.add_handler(MessageHandler(filters.Regex("^(📦 الباقات)$"), show_packages))
+app.add_handler(MessageHandler(filters.Regex("^(💼 ملفي الشخصي)$"), show_profile))
+app.add_handler(MessageHandler(filters.Regex("^(💳 إيداع)$"), deposit))
+app.add_handler(MessageHandler(filters.Regex("^(💸 سحب الأموال)$"), withdrawal))
+app.add_handler(MessageHandler(filters.Regex("^(🏠 الصفحة الرئيسية)$"), home))
+
+conv_handler = ConversationHandler(
+    entry_points=[MessageHandler(filters.Regex("^(🧾 إثبات الدفع)$"), proof)],
+    states={1: [MessageHandler(filters.PHOTO, save_proof)]},
+    fallbacks=[CommandHandler("cancel", cancel)],
+)
+app.add_handler(conv_handler)
+
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown))
+
+print("🚀 تم تشغيل البوت...")
+app.run_polling()
+
+if name == "main": main()
+

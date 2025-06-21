@@ -1,0 +1,141 @@
+The code adds a payment approval/rejection system to the admin panel, including a database status column, approval/rejection functions, and UI updates.
+```
+
+```
+{% extends "base.html" %}
+
+{% block title %}عرض المدفوعة - لوحة إدارة Ribeh{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-receipt me-2"></i>تفاصيل المدفوعة #{{ payment.id }}</h2>
+    <a href="{{ url_for('payments') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>العودة
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">معلومات المدفوعة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>معرف المدفوعة:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ payment.id }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>معرف المستخدم:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ payment.user_id }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>اسم المستخدم:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @{{ payment.username or 'لا يوجد' }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>طريقة الدفع:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ payment.method }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>الحالة:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {% if payment.status == 'pending' %}
+                            <span class="badge bg-warning">قيد الانتظار</span>
+                        {% elif payment.status == 'approved' %}
+                            <span class="badge bg-success">موافق عليه</span>
+                        {% elif payment.status == 'rejected' %}
+                            <span class="badge bg-danger">مرفوض</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>تاريخ الإرسال:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ payment.created_at or 'غير محدد' }}
+                    </div>
+                </div>
+
+                {% if payment.status == 'pending' %}
+                <hr>
+                <h6>تفعيل المدفوعة</h6>
+                <form method="POST" action="{{ url_for('set_investment', payment_id=payment.id) }}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="investment_amount">مبلغ الاستثمار (دج):</label>
+                                <input type="number" class="form-control" id="investment_amount" name="investment_amount" required min="1" placeholder="أدخل المبلغ">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-success d-block">
+                                <i class="fas fa-check me-1"></i>موافق وتفعيل
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-3">
+                    <a href="{{ url_for('reject_payment', payment_id=payment.id) }}" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من رفض هذه المدفوعة؟')">
+                        <i class="fas fa-times me-1"></i>رفض المدفوعة
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">إثبات الدفع</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if payment.proof %}
+                    <p class="text-success">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                        <br>
+                        تم استلام إثبات الدفع
+                    </p>
+                    <p class="text-muted">
+                        <small>تم رفع صورة الإثبات بواسطة المستخدم</small>
+                    </p>
+                {% else %}
+                    <p class="text-warning">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <br>
+                        لم يتم رفع إثبات الدفع
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+</replit_final_file>

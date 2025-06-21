@@ -1,0 +1,145 @@
+
+{% extends "base.html" %}
+
+{% block title %}الرئيسية - لوحة إدارة Ribeh{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم الرئيسية</h2>
+    <span class="badge bg-success">مباشر</span>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon bg-primary text-white me-3">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="mb-1">{{ stats.total_users }}</h3>
+                    <p class="text-muted mb-0">إجمالي المستخدمين</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon bg-success text-white me-3">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div>
+                    <h3 class="mb-1">{{ "{:,}".format(stats.total_investment) }} دج</h3>
+                    <p class="text-muted mb-0">إجمالي الاستثمارات</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon bg-warning text-white me-3">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div>
+                    <h3 class="mb-1">{{ stats.total_payments }}</h3>
+                    <p class="text-muted mb-0">عدد المدفوعات</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon bg-info text-white me-3">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div>
+                    <h3 class="mb-1">{{ stats.new_users_today }}</h3>
+                    <p class="text-muted mb-0">مستخدمين جدد اليوم</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- أحدث المستخدمين -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    أحدث المستخدمين
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in recent_users %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ user.user_id }}</strong>
+                                    <br>
+                                    <small class="text-muted">@{{ user.username or 'لا يوجد' }}</small>
+                                </div>
+                                <span class="badge bg-success">{{ "{:,}".format(user.investment) }} دج</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('users') }}" class="btn btn-outline-primary">
+                            عرض جميع المستخدمين
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">لا يوجد مستخدمين حالياً</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- المدفوعات المعلقة -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    المدفوعات المعلقة
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if pending_payments %}
+                    <div class="list-group list-group-flush">
+                        {% for payment in pending_payments %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ payment.user_id }}</strong>
+                                    <br>
+                                    <small class="text-muted">@{{ payment.username or 'لا يوجد' }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">{{ payment.method }}</span>
+                                    <br>
+                                    <a href="{{ url_for('view_payment', payment_id=payment.id) }}" class="btn btn-sm btn-outline-success mt-1">
+                                        عرض
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('payments') }}" class="btn btn-outline-warning">
+                            عرض جميع المدفوعات
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">لا توجد مدفوعات معلقة</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+
+{% extends "base.html" %}
+
+{% block title %}تعديل المستخدم - لوحة إدارة Ribeh{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-edit me-2"></i>تعديل بيانات المستخدم</h2>
+    <a href="{{ url_for('users') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>العودة
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">تعديل بيانات المستخدم: {{ user.user_id }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">معرف المستخدم</label>
+                        <input type="text" class="form-control" id="user_id" value="{{ user.user_id }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">اسم المستخدم</label>
+                        <input type="text" class="form-control" id="username" value="@{{ user.username or 'لا يوجد' }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="investment" class="form-label">مبلغ الاستثمار (دج)</label>
+                        <input type="number" class="form-control" id="investment" name="investment" 
+                               value="{{ user.investment }}" min="0" required>
+                        <div class="form-text">يمكنك تعديل مبلغ الاستثمار للمستخدم</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('users') }}" class="btn btn-secondary me-md-2">إلغاء</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>حفظ التغييرات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
